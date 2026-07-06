@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pedido recebido - Lista Br?s</title>
+  <style>
+    body{margin:0;font-family:Arial,sans-serif;background:#0f172a;color:#fff;display:grid;place-items:center;min-height:100vh;padding:24px}
+    main{max-width:560px;background:#111827;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+    h1{margin:0 0 12px;font-size:28px}p{line-height:1.6;color:#d1d5db}.btn{display:inline-block;margin-top:14px;background:#22c55e;color:#04130a;text-decoration:none;font-weight:700;padding:13px 18px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <main>
+    <h1 id="title">Pedido recebido</h1>
+    <p id="message">Estamos verificando o status do pagamento pelo Mercado Pago.</p>
+    <p>Se voce pagou por Pix, a confirmacao normalmente cai em poucos instantes.</p>
+    <a class="btn" href="https://api.whatsapp.com/send?phone=553182520331&text=Ola,%20acabei%20de%20comprar%20a%20Lista%20de%20Fornecedores%20do%20Bras%20pelo%20Mercado%20Pago.">Falar no WhatsApp</a>
+  </main>
+  <script>
+    const status = new URLSearchParams(location.search).get('status');
+    const title = document.getElementById('title');
+    const message = document.getElementById('message');
+    if (status === 'success') {
+      title.textContent = 'Pagamento aprovado';
+      message.textContent = 'Seu pagamento foi aprovado pelo Mercado Pago. Fale no WhatsApp para receber o acesso, se ele ainda nao chegou.';
+    } else if (status === 'pending') {
+      title.textContent = 'Pagamento pendente';
+      message.textContent = 'Seu pagamento ainda esta pendente. Se for Pix, aguarde a confirmacao do Mercado Pago.';
+    } else if (status === 'failure') {
+      title.textContent = 'Pagamento nao concluido';
+      message.textContent = 'O pagamento nao foi aprovado. Volte ao site e tente novamente.';
+    }
+  </script>
+</body>
+</html>

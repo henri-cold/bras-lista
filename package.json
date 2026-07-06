@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module"
+}
