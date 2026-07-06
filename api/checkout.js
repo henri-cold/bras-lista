@@ -2,6 +2,7 @@ const PRODUCT = {
   id: 'lista-fornecedores-bras',
   title: 'Lista de Fornecedores do Bras',
   description: 'Acesso a lista premium de fornecedores de moda feminina do Bras',
+  quantity: 1,
   unit_price: 19.9,
   currency_id: 'BRL',
 };
