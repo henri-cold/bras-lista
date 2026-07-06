@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     return sendHtml(res, 405, 'Metodo nao permitido.');
   }
 
-  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  const accessToken = String(process.env.MERCADOPAGO_ACCESS_TOKEN || '').trim();
   if (!accessToken) {
     return sendHtml(res, 500, '<h1>Checkout nao configurado</h1><p>Configure a variavel MERCADOPAGO_ACCESS_TOKEN na Vercel.</p>');
   }
@@ -61,7 +61,13 @@ export default async function handler(req, res) {
   const data = await mpResponse.json().catch(() => ({}));
   if (!mpResponse.ok) {
     console.error('[MP_CHECKOUT] preference error', data);
-    return sendHtml(res, 502, '<h1>Falha ao iniciar checkout</h1><p>Tente novamente em alguns instantes.</p>');
+    const message = data?.message || data?.error || data?.cause?.[0]?.description || 'Erro desconhecido do Mercado Pago.';
+    const safeMessage = String(message).replace(/[<>]/g, '');
+    return sendHtml(
+      res,
+      502,
+      `<h1>Falha ao iniciar checkout</h1><p>Mercado Pago respondeu: ${safeMessage}</p><p>Status: ${mpResponse.status}</p>`,
+    );
   }
 
   const checkoutUrl = data.init_point || data.sandbox_init_point;
