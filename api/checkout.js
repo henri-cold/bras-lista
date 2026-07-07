@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     external_reference: externalReference,
     notification_url: `${baseUrl}/api/mercadopago-webhook`,
     back_urls: {
-      success: `${baseUrl}/checkout-retorno.html?status=success`,
+      success: `${baseUrl}/api/acesso`,
       pending: `${baseUrl}/checkout-retorno.html?status=pending`,
       failure: `${baseUrl}/checkout-retorno.html?status=failure`,
     },
