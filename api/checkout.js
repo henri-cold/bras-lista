@@ -1,22 +1,23 @@
+import { getBaseUrl, getClientIp, getCookie, PRODUCT as META_PRODUCT, sendMetaEvent } from './meta-capi.js';
+
 const PRODUCT = {
-  id: 'lista-fornecedores-bras',
-  title: 'Lista de Fornecedores do Bras',
+  id: META_PRODUCT.id,
+  title: META_PRODUCT.title,
   description: 'Acesso a lista premium de fornecedores de moda feminina do Bras',
   quantity: 1,
-  unit_price: 19.9,
-  currency_id: 'BRL',
+  unit_price: META_PRODUCT.value,
+  currency_id: META_PRODUCT.currency,
 };
-
-function getBaseUrl(req) {
-  const proto = req.headers['x-forwarded-proto'] || 'https';
-  const host = req.headers['x-forwarded-host'] || req.headers.host;
-  return `${proto}://${host}`;
-}
 
 function sendHtml(res, status, html) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.end(html);
+}
+
+function getParam(req, name) {
+  const value = req.method === 'POST' ? req.body?.[name] : req.query?.[name];
+  return typeof value === 'string' ? value.trim() : '';
 }
 
 export default async function handler(req, res) {
@@ -32,6 +33,12 @@ export default async function handler(req, res) {
 
   const baseUrl = getBaseUrl(req);
   const externalReference = `bras-lista-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const eventId = getParam(req, 'event_id') || `checkout-${externalReference}`;
+  const fbp = getParam(req, 'fbp') || getCookie(req, '_fbp');
+  const fbc = getParam(req, 'fbc') || getCookie(req, '_fbc');
+  const eventSourceUrl = getParam(req, 'event_source_url') || req.headers.referer || baseUrl;
+  const clientIp = getClientIp(req);
+  const clientUserAgent = req.headers['user-agent'];
 
   const preference = {
     items: [PRODUCT],
@@ -47,8 +54,29 @@ export default async function handler(req, res) {
     metadata: {
       product_id: PRODUCT.id,
       source: 'site_bras_lista',
+      meta_checkout_event_id: eventId,
+      meta_fbp: fbp,
+      meta_fbc: fbc,
+      meta_client_ip: clientIp,
+      meta_client_user_agent: String(clientUserAgent || '').slice(0, 512),
+      meta_event_source_url: eventSourceUrl,
     },
   };
+
+  await sendMetaEvent('InitiateCheckout', {
+    req,
+    eventId,
+    eventSourceUrl,
+    userData: { fbp, fbc, client_ip_address: clientIp, client_user_agent: clientUserAgent },
+    customData: {
+      currency: PRODUCT.currency_id,
+      value: PRODUCT.unit_price,
+      content_ids: [PRODUCT.id],
+      content_name: PRODUCT.title,
+      content_type: 'product',
+      num_items: PRODUCT.quantity,
+    },
+  }).catch((error) => console.error('[META_CAPI] InitiateCheckout failed', error?.message || error));
 
   const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
     method: 'POST',
